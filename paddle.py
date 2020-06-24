@@ -26,5 +26,8 @@ class Paddle:
 
         self.rect.x = self.x
 
+    def center_paddle(self):
+        self.rect.x = self.game_rect.width / 2 - self.rect.width / 2
+
     def draw_paddle(self):
         pygame.draw.rect(self.game_screen, self.settings.paddle_color, self.rect)
