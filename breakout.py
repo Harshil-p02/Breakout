@@ -141,6 +141,7 @@ class Breakout:
         self.bricks.add(brick)
 
     def _update_ball(self):
+        # print(self.settings.ball_speed_x, self.settings.ball_speed_y)
         if not self.hacks_active:
             self.ball.update()
             self.collide()
@@ -150,13 +151,14 @@ class Breakout:
         self._ball_brick_collision()
 
         if self.ball.rect.bottom - self.ball.rect.width / 2 > self.screen.get_rect().height:
-            print(f'{self.settings.max_tries} tries remaining')
+            print(f'{self.settings.max_tries} tries remaining\t{len(self.bricks.sprites())} bricks left')
             self.restart()
 
     def collide(self):
         # Collision with paddle
         if self.ball.rect.colliderect(self.paddle.rect):
             self.settings.ball_speed_y *= -1.1
+            self._get_collision_coords()
         # Collision with game window
         elif self.ball.rect.right >= self.screen.get_rect().right:
             self.settings.ball_speed_x *= -1
@@ -164,6 +166,18 @@ class Breakout:
             self.settings.ball_speed_x *= -1
         elif self.ball.rect.top <= 0:
             self.settings.ball_speed_y *= -1
+
+    def _get_collision_coords(self):
+        # print(self.paddle.rect.x, self.ball.rect.x)
+        self._change_x_vel(self.paddle.rect.x, self.ball.rect.x)
+
+    def _change_x_vel(self, paddle_x, ball_x):
+        change = ball_x - paddle_x - self.settings.paddle_width / 2
+        # print(change)
+        if change > 0:
+            self.settings.ball_speed_x = 1 + change / 75
+        else:
+            self.settings.ball_speed_x = -1 + change / 75
 
     def _ball_brick_collision(self):
         for brick in self.bricks.sprites():
