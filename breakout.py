@@ -7,8 +7,9 @@ from paddle import Paddle
 from ball import Ball
 from brick import Brick
 from levels import Levels
+from button import Button
 
-
+# ----------------Make the atari version---------------------
 class Breakout:
 
     def __init__(self):
@@ -30,26 +31,40 @@ class Breakout:
         self._create_level()
 
         self.hacks_active = False
+        self.game_running = False
+
+        self.play_button = Button(self, 'Play')
 
     def run_game(self):
         '''Main Game Loop'''
-        pygame.mouse.set_visible(False)
+
         while True:
+            if self.game_running:
+                pygame.mouse.set_visible(False)
+                self._check_hacks()
+                self._update_ball()
+                if not self.hacks_active:
+                    self.paddle.update()
             self._check_events()
-            self._check_hacks()
-            self._update_ball()
-            if not self.hacks_active:
-                self.paddle.update()
             self._update_screen()
 
     def _check_events(self):
         for event in pygame.event.get():
             if event.type == pygame.QUIT:
-                sys.exit()
+                # sys.exit()
+                pygame.quit()
             elif event.type == pygame.KEYDOWN:
                 self._check_keydown_events(event)
             elif event.type == pygame.KEYUP:
                 self._check_keyup_events(event)
+            elif event.type == pygame.MOUSEBUTTONDOWN:
+                mouse_pos = pygame.mouse.get_pos()
+                self._check_play_button(mouse_pos)
+
+    def _check_play_button(self, mouse_pos):
+        if self.play_button.rect.collidepoint(mouse_pos) and not self.game_running:
+            time.sleep(0.5)
+            self.game_running = True
 
     def _check_keydown_events(self, event):
         if event.key == pygame.K_q:
@@ -58,6 +73,10 @@ class Breakout:
             self.paddle.moving_right = True
         elif event.key == pygame.K_LEFT:
             self.paddle.moving_left = True
+        elif event.key == pygame.K_p:
+            self.game_running = True
+        elif event.key == pygame.K_ESCAPE:
+            self.game_running = not self.game_running
         if self.hacks_active:
             if event.key == pygame.K_RIGHT:
                 self.ball.moving_right = True
@@ -157,6 +176,8 @@ class Breakout:
     def _change_level(self):
         if not self.bricks.sprites():
             self.settings.present_level_num += 1
+            if self.settings.present_level_num > len(self.level.levels):
+                sys.exit()
             time.sleep(0.5)
             self.reset_game()
 
@@ -182,6 +203,9 @@ class Breakout:
         self.paddle.draw_paddle()
         self.ball.blitme()
         self.bricks.draw(self.screen)
+
+        if not self.game_running:
+            self.play_button.draw_button()
 
         pygame.display.flip()
 
